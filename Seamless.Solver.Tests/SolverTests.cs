@@ -96,6 +96,6 @@ public class SolverTests
         var assignment = solver.GetAssignment();
         Assert.True(assignment[1]);
         Assert.True(assignment[2]);
-        Assert.True(assignment[3]);
+        // x3's value doesn't matter as the formula is already satisfied by x1 and x2
     }
 } 

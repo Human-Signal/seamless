@@ -13,64 +13,71 @@ public class Solver
 
     public bool? Solve()
     {
-        return DPLL(_formula, _assignment);
-    }
+        var stack = new Stack<(Formula formula, Dictionary<int, bool?> assignment)>();
+        stack.Push((_formula, new Dictionary<int, bool?>(_assignment)));
 
-    private bool? DPLL(Formula formula, Dictionary<int, bool?> assignment)
-    {
-        // Unit propagation
-        while (true)
+        while (stack.Count > 0)
         {
-            var unitClause = formula.Clauses.FirstOrDefault(c => c.IsUnit);
-            if (unitClause == null) break;
+            var (formula, assignment) = stack.Pop();
 
-            var unitLiteral = unitClause.Literals.First();
-            assignment[unitLiteral.Variable] = !unitLiteral.IsNegated;
-            
-            formula = Simplify(formula, unitLiteral.Variable, !unitLiteral.IsNegated);
+            // Unit propagation
+            while (true)
+            {
+                var unitClause = formula.Clauses.FirstOrDefault(c => c.IsUnit);
+                if (unitClause == null) break;
+
+                var unitLiteral = unitClause.Literals.First();
+                assignment[unitLiteral.Variable] = !unitLiteral.IsNegated;
+                
+                formula = Simplify(formula, unitLiteral.Variable, !unitLiteral.IsNegated);
+                if (formula.Clauses.Any(c => c.IsEmpty))
+                {
+                    Console.WriteLine($"Found empty clause during unit propagation. Formula: {formula}");
+                    return false;
+                }
+            }
+
+            // Pure literal elimination
+            var pureLiterals = FindPureLiterals(formula);
+            foreach (var literal in pureLiterals)
+            {
+                assignment[literal.Variable] = !literal.IsNegated;
+                formula = Simplify(formula, literal.Variable, !literal.IsNegated);
+            }
+
+            if (formula.Clauses.Count == 0)
+            {
+                // Found a satisfying assignment
+                foreach (var kvp in assignment)
+                    _assignment[kvp.Key] = kvp.Value;
+                return true;
+            }
+
             if (formula.Clauses.Any(c => c.IsEmpty))
+            {
+                Console.WriteLine($"Found empty clause after pure literal elimination. Formula: {formula}");
                 return false;
-        }
+            }
 
-        // Pure literal elimination
-        var pureLiterals = FindPureLiterals(formula);
-        foreach (var literal in pureLiterals)
-        {
-            assignment[literal.Variable] = !literal.IsNegated;
-            formula = Simplify(formula, literal.Variable, !literal.IsNegated);
-        }
+            // Choose a variable to branch on
+            var variable = ChooseVariable(formula);
+            if (variable == null)
+            {
+                // No more variables to branch on
+                foreach (var kvp in assignment)
+                    _assignment[kvp.Key] = kvp.Value;
+                return true;
+            }
 
-        if (formula.Clauses.Count == 0)
-            return true;
+            // Try assigning false first (push to stack)
+            var falseAssignment = new Dictionary<int, bool?>(assignment);
+            falseAssignment[variable.Value] = false;
+            stack.Push((Simplify(formula, variable.Value, false), falseAssignment));
 
-        if (formula.Clauses.Any(c => c.IsEmpty))
-            return false;
-
-        // Choose a variable to branch on
-        var variable = ChooseVariable(formula);
-        if (variable == null)
-            return true;
-
-        // Try assigning true
-        var trueAssignment = new Dictionary<int, bool?>(assignment);
-        trueAssignment[variable.Value] = true;
-        var trueResult = DPLL(Simplify(formula, variable.Value, true), trueAssignment);
-        if (trueResult == true)
-        {
-            foreach (var kvp in trueAssignment)
-                assignment[kvp.Key] = kvp.Value;
-            return true;
-        }
-
-        // Try assigning false
-        var falseAssignment = new Dictionary<int, bool?>(assignment);
-        falseAssignment[variable.Value] = false;
-        var falseResult = DPLL(Simplify(formula, variable.Value, false), falseAssignment);
-        if (falseResult == true)
-        {
-            foreach (var kvp in falseAssignment)
-                assignment[kvp.Key] = kvp.Value;
-            return true;
+            // Try assigning true (push to stack)
+            var trueAssignment = new Dictionary<int, bool?>(assignment);
+            trueAssignment[variable.Value] = true;
+            stack.Push((Simplify(formula, variable.Value, true), trueAssignment));
         }
 
         return false;
@@ -100,7 +107,7 @@ public class Solver
                 }
             }
 
-            if (!clauseSatisfied && newLiterals.Count > 0)
+            if (!clauseSatisfied)
             {
                 newClauses.Add(new Clause(newLiterals));
             }
