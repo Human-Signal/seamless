@@ -16,5 +16,5 @@ public class Clause
     public bool IsEmpty => Literals.Count == 0;
     public bool IsUnit => Literals.Count == 1;
 
-    public override string ToString() => string.Join(" ∨ ", Literals);
+    public override string ToString() => $"({string.Join(" ∨ ", Literals)})";
 } 

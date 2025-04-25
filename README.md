@@ -46,6 +46,33 @@ Example:
 seamless info problem.cnf
 ```
 
+### List DIMACS Files
+
+```bash
+seamless list <folder> [--sort <criteria>]
+```
+
+Lists information about all DIMACS files in a folder. The output includes:
+- Number of variables
+- Number of clauses
+- File size in KB
+- Filename
+
+The `--sort` option allows sorting by:
+- `name` (default): Sort by filename
+- `size`: Sort by file size
+- `variables`: Sort by number of variables
+- `clauses`: Sort by number of clauses
+
+Example:
+```bash
+# List all files sorted by name
+seamless list /path/to/folder
+
+# List files sorted by number of variables
+seamless list /path/to/folder --sort variables
+```
+
 ### Run Built-in Example
 
 ```bash
@@ -62,6 +89,7 @@ Get help about any command:
 seamless --help          # General help
 seamless solve --help    # Help for the solve command
 seamless info --help     # Help for the info command
+seamless list --help     # Help for the list command
 ```
 
 ## Input Format

@@ -21,6 +21,46 @@ public class DimacsReader
         }
     }
 
+    public static (int VariableCount, int ClauseCount) ReadHeader(string filePath)
+    {
+        // Handle .xz compressed files
+        if (filePath.EndsWith(".xz"))
+        {
+            using var xzStream = new FileStream(filePath, FileMode.Open);
+            using var decompressor = new XZStream(xzStream);
+            using var reader = new StreamReader(decompressor);
+            return ParseHeader(reader);
+        }
+        else
+        {
+            using var reader = new StreamReader(filePath);
+            return ParseHeader(reader);
+        }
+    }
+
+    private static (int VariableCount, int ClauseCount) ParseHeader(StreamReader reader)
+    {
+        string? line;
+        while ((line = reader.ReadLine()) != null)
+        {
+            // Skip empty lines and comments
+            if (string.IsNullOrWhiteSpace(line) || line.StartsWith("c"))
+                continue;
+
+            // Parse problem line
+            if (line.StartsWith("p cnf"))
+            {
+                var parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length != 4)
+                    throw new FormatException("Invalid problem line format");
+
+                return (int.Parse(parts[2]), int.Parse(parts[3]));
+            }
+        }
+
+        throw new FormatException("No problem line found in DIMACS file");
+    }
+
     private static Formula ParseDimacs(StreamReader reader)
     {
         int variableCount = 0;
