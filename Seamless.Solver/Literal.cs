@@ -14,4 +14,18 @@ public readonly struct Literal
     public Literal Negate() => new(Variable, !IsNegated);
 
     public override string ToString() => IsNegated ? $"¬{Variable}" : $"{Variable}";
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is Literal other)
+        {
+            return Variable == other.Variable && IsNegated == other.IsNegated;
+        }
+        return false;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Variable, IsNegated);
+    }
 } 

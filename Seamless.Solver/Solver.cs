@@ -116,7 +116,7 @@ public class Solver
         return new Formula(formula.VariableCount, newClauses);
     }
 
-    private IEnumerable<Literal> FindPureLiterals(Formula formula)
+    public IEnumerable<Literal> FindPureLiterals(Formula formula)
     {
         var literalCounts = new Dictionary<Literal, int>();
         foreach (var clause in formula.Clauses)
