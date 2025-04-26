@@ -1,83 +1,70 @@
 namespace Seamless.Solver;
 
-public class Solver
+public static class Solver
 {
-    private readonly Formula _formula;
-    private readonly Dictionary<int, bool?> _assignment;
-
-    public Solver(Formula formula)
-    {
-        _formula = formula;
-        _assignment = new Dictionary<int, bool?>();
-    }
-
-    public bool? Solve()
+    public static bool? Solve(Formula formula)
     {
         var stack = new Stack<(Formula formula, Dictionary<int, bool?> assignment)>();
-        stack.Push((_formula, new Dictionary<int, bool?>(_assignment)));
+        stack.Push((formula, new Dictionary<int, bool?>()));
 
         while (stack.Count > 0)
         {
-            var (formula, assignment) = stack.Pop();
+            var (currentFormula, assignment) = stack.Pop();
 
             // Unit propagation
             while (true)
             {
-                var unitClause = formula.Clauses.FirstOrDefault(c => c.IsUnit);
+                var unitClause = currentFormula.Clauses.FirstOrDefault(c => c.IsUnit);
                 if (unitClause == null) break;
 
                 var unitLiteral = unitClause.Literals.First();
                 assignment[unitLiteral.Variable] = !unitLiteral.IsNegated;
                 
-                formula = Simplify(formula, unitLiteral.Variable, !unitLiteral.IsNegated);
-                if (formula.Clauses.Any(c => c.IsEmpty))
+                currentFormula = Simplify(currentFormula, unitLiteral.Variable, !unitLiteral.IsNegated);
+                if (currentFormula.Clauses.Any(c => c.IsEmpty))
                 {
-                    Console.WriteLine($"Found empty clause during unit propagation. Formula: {formula}");
+                    Console.WriteLine($"Found empty clause during unit propagation. Formula: {currentFormula}");
                     return false;
                 }
             }
 
             // Pure literal elimination
-            var pureLiterals = FindPureLiterals(formula);
+            var pureLiterals = FindPureLiterals(currentFormula);
             foreach (var literal in pureLiterals)
             {
                 assignment[literal.Variable] = !literal.IsNegated;
-                formula = Simplify(formula, literal.Variable, !literal.IsNegated);
+                currentFormula = Simplify(currentFormula, literal.Variable, !literal.IsNegated);
             }
 
-            if (formula.Clauses.Count == 0)
+            if (currentFormula.Clauses.Count == 0)
             {
                 // Found a satisfying assignment
-                foreach (var kvp in assignment)
-                    _assignment[kvp.Key] = kvp.Value;
                 return true;
             }
 
-            if (formula.Clauses.Any(c => c.IsEmpty))
+            if (currentFormula.Clauses.Any(c => c.IsEmpty))
             {
-                Console.WriteLine($"Found empty clause after pure literal elimination. Formula: {formula}");
+                Console.WriteLine($"Found empty clause after pure literal elimination. Formula: {currentFormula}");
                 return false;
             }
 
             // Choose a variable to branch on
-            var variable = ChooseVariable(formula);
+            var variable = ChooseVariable(currentFormula);
             if (variable == null)
             {
                 // No more variables to branch on
-                foreach (var kvp in assignment)
-                    _assignment[kvp.Key] = kvp.Value;
                 return true;
             }
 
             // Try assigning false first (push to stack)
             var falseAssignment = new Dictionary<int, bool?>(assignment);
             falseAssignment[variable.Value] = false;
-            stack.Push((Simplify(formula, variable.Value, false), falseAssignment));
+            stack.Push((Simplify(currentFormula, variable.Value, false), falseAssignment));
 
             // Try assigning true (push to stack)
             var trueAssignment = new Dictionary<int, bool?>(assignment);
             trueAssignment[variable.Value] = true;
-            stack.Push((Simplify(formula, variable.Value, true), trueAssignment));
+            stack.Push((Simplify(currentFormula, variable.Value, true), trueAssignment));
         }
 
         return false;
@@ -151,12 +138,5 @@ public class Solver
         return variableCounts.Count > 0
             ? variableCounts.OrderByDescending(kvp => kvp.Value).First().Key
             : null;
-    }
-
-    public Dictionary<int, bool> GetAssignment()
-    {
-        return _assignment
-            .Where(kvp => kvp.Value.HasValue)
-            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value!.Value);
     }
 } 

@@ -12,16 +12,12 @@ public class SolverTests
             new Clause(new Literal(1)),
             new Clause(new Literal(2))
         );
-        var solver = new Solver(formula);
 
         // Act
-        var result = solver.Solve();
+        var result = Solver.Solve(formula);
 
         // Assert
         Assert.True(result);
-        var assignment = solver.GetAssignment();
-        Assert.True(assignment[1]);
-        Assert.True(assignment[2]);
     }
 
     [Fact]
@@ -32,17 +28,16 @@ public class SolverTests
             new Clause(new Literal(1)),
             new Clause(new Literal(1, true))
         );
-        var solver = new Solver(formula);
 
         // Act
-        var result = solver.Solve();
+        var result = Solver.Solve(formula);
 
         // Assert
         Assert.False(result);
     }
 
     [Fact]
-    public void Solver_Solve_ComplexFormula_ReturnsCorrectAssignment()
+    public void Solver_Solve_ComplexFormula_ReturnsTrue()
     {
         // Arrange
         var formula = new Formula(3,
@@ -50,17 +45,12 @@ public class SolverTests
             new Clause(new Literal(2), new Literal(3)),
             new Clause(new Literal(1, true), new Literal(3, true))
         );
-        var solver = new Solver(formula);
 
         // Act
-        var result = solver.Solve();
+        var result = Solver.Solve(formula);
 
         // Assert
         Assert.True(result);
-        var assignment = solver.GetAssignment();
-        Assert.True(assignment[1]);
-        Assert.True(assignment[2]);
-        Assert.False(assignment[3]);
     }
 
     [Fact]
@@ -68,17 +58,16 @@ public class SolverTests
     {
         // Arrange
         var formula = new Formula(0);
-        var solver = new Solver(formula);
 
         // Act
-        var result = solver.Solve();
+        var result = Solver.Solve(formula);
 
         // Assert
         Assert.True(result);
     }
 
     [Fact]
-    public void Solver_Solve_FormulaWithPureLiterals_ReturnsCorrectAssignment()
+    public void Solver_Solve_FormulaWithPureLiterals_ReturnsTrue()
     {
         // Arrange
         var formula = new Formula(3,
@@ -86,16 +75,11 @@ public class SolverTests
             new Clause(new Literal(1), new Literal(3, true)),
             new Clause(new Literal(2), new Literal(3))
         );
-        var solver = new Solver(formula);
 
         // Act
-        var result = solver.Solve();
+        var result = Solver.Solve(formula);
 
         // Assert
         Assert.True(result);
-        var assignment = solver.GetAssignment();
-        Assert.True(assignment[1]);
-        Assert.True(assignment[2]);
-        // x3's value doesn't matter as the formula is already satisfied by x1 and x2
     }
 } 
