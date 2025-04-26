@@ -83,7 +83,7 @@ public class Solver
         return false;
     }
 
-    private Formula Simplify(Formula formula, int variable, bool value)
+    private static Formula Simplify(Formula formula, int variable, bool value)
     {
         var newClauses = new HashSet<Clause>();
         foreach (var clause in formula.Clauses)
@@ -116,7 +116,7 @@ public class Solver
         return new Formula(formula.VariableCount, newClauses);
     }
 
-    public IEnumerable<Literal> FindPureLiterals(Formula formula)
+    public static IEnumerable<Literal> FindPureLiterals(Formula formula)
     {
         var literalCounts = new Dictionary<Literal, int>();
         foreach (var clause in formula.Clauses)
@@ -134,7 +134,7 @@ public class Solver
             .Select(kvp => kvp.Key);
     }
 
-    private int? ChooseVariable(Formula formula)
+    private static int? ChooseVariable(Formula formula)
     {
         // Simple heuristic: choose the variable that appears most frequently
         var variableCounts = new Dictionary<int, int>();

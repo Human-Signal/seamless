@@ -13,9 +13,8 @@ public class FindPureLiteralsTests
             new Clause(new Literal(2))
         );
         var solver = new Solver(formula);
-
         // Act
-        var pureLiterals = solver.FindPureLiterals(formula).ToList();
+        var pureLiterals = Solver.FindPureLiterals(formula).ToList();
 
         // Assert
         Assert.Equal(2, pureLiterals.Count);
@@ -34,7 +33,7 @@ public class FindPureLiteralsTests
         var solver = new Solver(formula);
 
         // Act
-        var pureLiterals = solver.FindPureLiterals(formula).ToList();
+        var pureLiterals = Solver.FindPureLiterals(formula).ToList();
 
         // Assert
         Assert.Empty(pureLiterals);
@@ -52,7 +51,7 @@ public class FindPureLiteralsTests
         var solver = new Solver(formula);
 
         // Act
-        var pureLiterals = solver.FindPureLiterals(formula).ToList();
+        var pureLiterals = Solver.FindPureLiterals(formula).ToList();
 
         // Assert
         Assert.Equal(2, pureLiterals.Count);
@@ -68,7 +67,7 @@ public class FindPureLiteralsTests
         var solver = new Solver(formula);
 
         // Act
-        var pureLiterals = solver.FindPureLiterals(formula).ToList();
+        var pureLiterals = Solver.FindPureLiterals(formula).ToList();
 
         // Assert
         Assert.Empty(pureLiterals);
@@ -84,7 +83,7 @@ public class FindPureLiteralsTests
         var solver = new Solver(formula);
 
         // Act
-        var pureLiterals = solver.FindPureLiterals(formula).ToList();
+        var pureLiterals = Solver.FindPureLiterals(formula).ToList();
 
         // Assert
         Assert.Equal(3, pureLiterals.Count);
