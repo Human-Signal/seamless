@@ -70,7 +70,7 @@ public static class Solver
         return (false, null);
     }
 
-    private static Formula Simplify(Formula formula, int variable, bool value)
+    public static Formula Simplify(Formula formula, int variable, bool value)
     {
         var newClauses = new HashSet<Clause>();
         foreach (var clause in formula.Clauses)
