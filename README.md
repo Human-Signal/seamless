@@ -102,5 +102,5 @@ Get help about any command:
 
 Easy ones
 
-- SAT: `./seamless solve ./samples/41f4cb4992a481c9d43e2e1a4e2349ac-sgen1-sat-180-100.cnf.xz`
-- UNSAT: `./seamless solve ./samples/2b60f9be1439f63b7f174c6b8ca7fedf-sgen1-unsat-121-100.cnf.xz`
+- SAT: `./seamless solve ./samples/36c342091848d5d6a1a8eeb3a8b49b86-rovers1_ks99i.renamed-as.sat05-3971.cnf.xz`
+- UNSAT: `./seamless solve ./samples/211938776d92f11870a687abd11d55a4-iso-icl004.shuffled-as.sat05-3238.cnf.xz`
