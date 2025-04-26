@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Build the app in release mode
+dotnet build -c Release
+
+# Get the path to the executable
+EXE_PATH="./Seamless.Cli/bin/Release/net9.0/Seamless.Cli"
+
+# Make sure the executable exists
+if [ ! -f "$EXE_PATH" ]; then
+    echo "Error: Executable not found at $EXE_PATH"
+    exit 1
+fi
+
+# Make the executable executable
+chmod +x "$EXE_PATH"
+
+# Run the executable with all arguments passed to this script
+"$EXE_PATH" "$@" 

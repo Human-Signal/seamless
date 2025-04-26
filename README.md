@@ -12,6 +12,11 @@ cd Seamless
 dotnet build
 ```
 
+Make the seamless script executable:
+```bash
+chmod +x seamless
+```
+
 ## Usage
 
 The solver provides several commands through its CLI:
@@ -19,20 +24,20 @@ The solver provides several commands through its CLI:
 ### Solve a SAT Problem
 
 ```bash
-seamless solve <file>
+./seamless solve <file>
 ```
 
 Solves a SAT problem from a DIMACS CNF file. Supports both .cnf and .cnf.xz files.
 
 Example:
 ```bash
-seamless solve problem.cnf.xz
+./seamless solve problem.cnf.xz
 ```
 
 ### Get Problem Information
 
 ```bash
-seamless info <file>
+./seamless info <file>
 ```
 
 Displays information about a DIMACS CNF file, including:
@@ -43,13 +48,13 @@ Displays information about a DIMACS CNF file, including:
 
 Example:
 ```bash
-seamless info problem.cnf
+./seamless info problem.cnf
 ```
 
 ### List DIMACS Files
 
 ```bash
-seamless list <folder> [--sort <criteria>]
+./seamless list <folder> [--sort <criteria>]
 ```
 
 Lists information about all DIMACS files in a folder. The output includes:
@@ -67,16 +72,16 @@ The `--sort` option allows sorting by:
 Example:
 ```bash
 # List all files sorted by name
-seamless list /path/to/folder
+./seamless list /path/to/folder
 
 # List files sorted by number of variables
-seamless list /path/to/folder --sort variables
+./seamless list /path/to/folder --sort variables
 ```
 
 ### Run Built-in Example
 
 ```bash
-seamless example
+./seamless example
 ```
 
 Runs a built-in example formula to demonstrate the solver's functionality.
@@ -86,10 +91,10 @@ Runs a built-in example formula to demonstrate the solver's functionality.
 Get help about any command:
 
 ```bash
-seamless --help          # General help
-seamless solve --help    # Help for the solve command
-seamless info --help     # Help for the info command
-seamless list --help     # Help for the list command
+./seamless --help          # General help
+./seamless solve --help    # Help for the solve command
+./seamless info --help     # Help for the info command
+./seamless list --help     # Help for the list command
 ```
 
 ## Input Format
