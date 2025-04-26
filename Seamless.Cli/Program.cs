@@ -13,8 +13,14 @@ class Program
             name: "file",
             description: "The DIMACS CNF file to solve (supports .cnf and .cnf.xz files)"
         );
+        var timeLimitOption = new Option<int>(
+            name: "--time-limit",
+            description: "Maximum time in seconds to run the solver (default: 5000)",
+            getDefaultValue: () => 5000
+        );
         solveCommand.AddArgument(solveFileArg);
-        solveCommand.SetHandler(file => new SolveCommandHandler(file).Handle(), solveFileArg);
+        solveCommand.AddOption(timeLimitOption);
+        solveCommand.SetHandler((file, timeLimit) => new SolveCommandHandler(file, timeLimit).Handle(), solveFileArg, timeLimitOption);
 
         // info command
         var infoCommand = new Command("info", "Display information about a DIMACS CNF file");

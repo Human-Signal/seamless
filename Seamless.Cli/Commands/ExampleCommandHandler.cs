@@ -1,5 +1,6 @@
 using System.CommandLine;
 using Seamless.Solver;
+using System.Threading;
 
 namespace Seamless.Cli.Commands;
 
@@ -27,7 +28,7 @@ public class ExampleCommandHandler : ICommandHandler
         Console.WriteLine(formula);
         Console.WriteLine();
 
-        var result = Solver.Solver.Solve(formula);
+        var result = Solver.Solver.Solve(formula, CancellationToken.None);
 
         if (result.Result == true)
         {

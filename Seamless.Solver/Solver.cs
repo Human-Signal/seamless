@@ -2,7 +2,7 @@ namespace Seamless.Solver;
 
 public static class Solver
 {
-    public static (bool? Result, Dictionary<int, bool?>? Assignment) Solve(Formula formula)
+    public static (bool? Result, Dictionary<int, bool?>? Assignment) Solve(Formula formula, CancellationToken cancellationToken = default)
     {
         var stack = new Stack<(Formula formula, Dictionary<int, bool?> assignment)>();
         stack.Push((formula, new Dictionary<int, bool?>()));
@@ -10,11 +10,23 @@ public static class Solver
 
         while (stack.Count > 0)
         {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                Console.WriteLine($"Cancelled after {iterations} iterations");
+                return (null, null);
+            }
+
             var (currentFormula, assignment) = stack.Pop();
 
             // Unit propagation
             while (true)
             {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    Console.WriteLine($"Cancelled after {iterations} iterations");
+                    return (null, null);
+                }
+
                 var unitClause = currentFormula.Clauses.FirstOrDefault(c => c.IsUnit);
                 if (unitClause == null) break;
 
@@ -37,6 +49,12 @@ public static class Solver
             var pureLiterals = FindPureLiterals(currentFormula);
             foreach (var literal in pureLiterals)
             {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    Console.WriteLine($"Cancelled after {iterations} iterations");
+                    return (null, null);
+                }
+
                 assignment[literal.Variable] = !literal.IsNegated;
                 iterations++;
                 currentFormula = Simplify(currentFormula, literal.Variable, !literal.IsNegated);
