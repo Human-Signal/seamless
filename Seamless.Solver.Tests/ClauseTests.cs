@@ -58,6 +58,6 @@ public class ClauseTests
         var clause = new Clause(new Literal(1), new Literal(2, true), new Literal(3));
 
         // Act & Assert
-        Assert.Equal("1 ∨ ¬2 ∨ 3", clause.ToString());
+        Assert.Equal("(1 ∨ ¬2 ∨ 3)", clause.ToString());
     }
 } 

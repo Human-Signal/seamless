@@ -48,6 +48,6 @@ public class FormulaTests
         );
 
         // Act & Assert
-        Assert.Equal("1 ∧ ¬2", formula.ToString());
+        Assert.Equal("(1) ∧ (¬2)", formula.ToString());
     }
 } 
