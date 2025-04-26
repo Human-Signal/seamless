@@ -6,6 +6,7 @@ public static class Solver
     {
         var stack = new Stack<(Formula formula, Dictionary<int, bool?> assignment)>();
         stack.Push((formula, new Dictionary<int, bool?>()));
+        var iterations = 0;
 
         while (stack.Count > 0)
         {
@@ -19,13 +20,17 @@ public static class Solver
 
                 var unitLiteral = unitClause.Literals.First();
                 assignment[unitLiteral.Variable] = !unitLiteral.IsNegated;
+                iterations++;
                 
                 currentFormula = Simplify(currentFormula, unitLiteral.Variable, !unitLiteral.IsNegated);
                 if (currentFormula.Clauses.Any(c => c.IsEmpty))
                 {
-                    Console.WriteLine($"Found empty clause during unit propagation. Formula: {currentFormula}");
-                    return (false, null);
+                    break;
                 }
+            }
+            if (currentFormula.Clauses.Any(c => c.IsEmpty))
+            {
+                continue;
             }
 
             // Pure literal elimination
@@ -33,19 +38,20 @@ public static class Solver
             foreach (var literal in pureLiterals)
             {
                 assignment[literal.Variable] = !literal.IsNegated;
+                iterations++;
                 currentFormula = Simplify(currentFormula, literal.Variable, !literal.IsNegated);
             }
 
             if (currentFormula.Clauses.Count == 0)
             {
                 // Found a satisfying assignment
+                Console.WriteLine($"Found satisfying assignment after {iterations} iterations");
                 return (true, assignment);
             }
 
             if (currentFormula.Clauses.Any(c => c.IsEmpty))
             {
-                Console.WriteLine($"Found empty clause after pure literal elimination. Formula: {currentFormula}");
-                return (false, null);
+                continue;
             }
 
             // Choose a variable to branch on
@@ -53,20 +59,24 @@ public static class Solver
             if (variable == null)
             {
                 // No more variables to branch on
+                Console.WriteLine($"Determined satisfiable after {iterations} iterations");
                 return (true, assignment);
             }
 
             // Try assigning false first (push to stack)
             var falseAssignment = new Dictionary<int, bool?>(assignment);
             falseAssignment[variable.Value] = false;
+            iterations++;
             stack.Push((Simplify(currentFormula, variable.Value, false), falseAssignment));
 
             // Try assigning true (push to stack)
             var trueAssignment = new Dictionary<int, bool?>(assignment);
             trueAssignment[variable.Value] = true;
+            iterations++;
             stack.Push((Simplify(currentFormula, variable.Value, true), trueAssignment));
         }
 
+        Console.WriteLine($"Determined unsatisfiable after {iterations} iterations");
         return (false, null);
     }
 

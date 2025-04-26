@@ -17,4 +17,18 @@ public class Clause
     public bool IsUnit => Literals.Count == 1;
 
     public override string ToString() => $"({string.Join(" ∨ ", Literals)})";
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is Clause other)
+        {
+            return Literals.SetEquals(other.Literals);
+        }
+        return false;
+    }
+
+    public override int GetHashCode()
+    {
+        return Literals.GetHashCode();
+    }
 } 
