@@ -2,7 +2,7 @@ namespace Seamless.Solver;
 
 public static class Solver
 {
-    public static bool? Solve(Formula formula)
+    public static (bool? Result, Dictionary<int, bool?>? Assignment) Solve(Formula formula)
     {
         var stack = new Stack<(Formula formula, Dictionary<int, bool?> assignment)>();
         stack.Push((formula, new Dictionary<int, bool?>()));
@@ -24,7 +24,7 @@ public static class Solver
                 if (currentFormula.Clauses.Any(c => c.IsEmpty))
                 {
                     Console.WriteLine($"Found empty clause during unit propagation. Formula: {currentFormula}");
-                    return false;
+                    return (false, null);
                 }
             }
 
@@ -39,13 +39,13 @@ public static class Solver
             if (currentFormula.Clauses.Count == 0)
             {
                 // Found a satisfying assignment
-                return true;
+                return (true, assignment);
             }
 
             if (currentFormula.Clauses.Any(c => c.IsEmpty))
             {
                 Console.WriteLine($"Found empty clause after pure literal elimination. Formula: {currentFormula}");
-                return false;
+                return (false, null);
             }
 
             // Choose a variable to branch on
@@ -53,7 +53,7 @@ public static class Solver
             if (variable == null)
             {
                 // No more variables to branch on
-                return true;
+                return (true, assignment);
             }
 
             // Try assigning false first (push to stack)
@@ -67,7 +67,7 @@ public static class Solver
             stack.Push((Simplify(currentFormula, variable.Value, true), trueAssignment));
         }
 
-        return false;
+        return (false, null);
     }
 
     private static Formula Simplify(Formula formula, int variable, bool value)
