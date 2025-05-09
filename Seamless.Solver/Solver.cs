@@ -2,13 +2,16 @@ namespace Seamless.Solver;
 
 public static class Solver
 {
+    private record VariableAssignment(int Variable, bool Value, bool Flipped, bool IsDecisionVariable);
+
     public static (bool? Result, Dictionary<int, bool?>? Assignment) Solve(Formula formula, CancellationToken cancellationToken = default)
     {
-        var stack = new Stack<(Formula formula, Dictionary<int, bool?> assignment)>();
-        stack.Push((formula, new Dictionary<int, bool?>()));
-        var iterations = 0;
+        var watchedFormula = new WatchedFormula(formula.VariableCount, formula.Clauses);
+        var assignments = new Dictionary<int, bool?>(formula.VariableCount);
+        var stack = new Stack<VariableAssignment>(formula.VariableCount);
+        long iterations = 0;
 
-        while (stack.Count > 0)
+        while (true)
         {
             if (cancellationToken.IsCancellationRequested)
             {
@@ -16,155 +19,76 @@ public static class Solver
                 return (null, null);
             }
 
-            var (currentFormula, assignment) = stack.Pop();
-
-            // Unit propagation
-            while (true)
+            iterations++;
+            var result = Propagate(watchedFormula, assignments, stack);
+            if (result == PropagationResult.Satisfiable)
             {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    Console.WriteLine($"Cancelled after {iterations} iterations");
-                    return (null, null);
-                }
-
-                var unitClause = currentFormula.Clauses.FirstOrDefault(c => c.IsUnit);
-                if (unitClause == null) break;
-
-                var unitLiteral = unitClause.Literals.First();
-                assignment[unitLiteral.Variable] = !unitLiteral.IsNegated;
-                iterations++;
-                
-                currentFormula = Simplify(currentFormula, unitLiteral.Variable, !unitLiteral.IsNegated);
-                if (currentFormula.Clauses.Any(c => c.IsEmpty))
+                Console.WriteLine($"Determined satisfiable after {iterations} iterations");
+                return (true, assignments);
+            }
+            else if (result == PropagationResult.Unsatisfiable)
+            {
+                var assignment = Backtrack(assignments, stack);
+                if (assignment == null)
                 {
                     break;
                 }
+                stack.Push(assignment);
             }
-            if (currentFormula.Clauses.Any(c => c.IsEmpty))
+            else
             {
-                continue;
+                var assignment = ChooseVariable(watchedFormula, assignments);
+                stack.Push(assignment);
             }
-
-            // Pure literal elimination
-            var pureLiterals = FindPureLiterals(currentFormula);
-            foreach (var literal in pureLiterals)
-            {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    Console.WriteLine($"Cancelled after {iterations} iterations");
-                    return (null, null);
-                }
-
-                assignment[literal.Variable] = !literal.IsNegated;
-                iterations++;
-                currentFormula = Simplify(currentFormula, literal.Variable, !literal.IsNegated);
-            }
-
-            if (currentFormula.Clauses.Count == 0)
-            {
-                // Found a satisfying assignment
-                Console.WriteLine($"Found satisfying assignment after {iterations} iterations");
-                return (true, assignment);
-            }
-
-            if (currentFormula.Clauses.Any(c => c.IsEmpty))
-            {
-                continue;
-            }
-
-            // Choose a variable to branch on
-            var variable = ChooseVariable(currentFormula);
-            if (variable == null)
-            {
-                // No more variables to branch on
-                Console.WriteLine($"Determined satisfiable after {iterations} iterations");
-                return (true, assignment);
-            }
-
-            // Try assigning false first (push to stack)
-            var falseAssignment = new Dictionary<int, bool?>(assignment);
-            falseAssignment[variable.Value] = false;
-            iterations++;
-            stack.Push((Simplify(currentFormula, variable.Value, false), falseAssignment));
-
-            // Try assigning true (push to stack)
-            var trueAssignment = new Dictionary<int, bool?>(assignment);
-            trueAssignment[variable.Value] = true;
-            iterations++;
-            stack.Push((Simplify(currentFormula, variable.Value, true), trueAssignment));
         }
-
         Console.WriteLine($"Determined unsatisfiable after {iterations} iterations");
         return (false, null);
     }
 
-    public static Formula Simplify(Formula formula, int variable, bool value)
+    private enum PropagationResult
     {
-        var newClauses = new HashSet<Clause>();
-        foreach (var clause in formula.Clauses)
-        {
-            var newLiterals = new HashSet<Literal>();
-            bool clauseSatisfied = false;
-
-            foreach (var literal in clause.Literals)
-            {
-                if (literal.Variable == variable)
-                {
-                    if ((literal.IsNegated && !value) || (!literal.IsNegated && value))
-                    {
-                        clauseSatisfied = true;
-                        break;
-                    }
-                }
-                else
-                {
-                    newLiterals.Add(literal);
-                }
-            }
-
-            if (!clauseSatisfied)
-            {
-                newClauses.Add(new Clause(newLiterals));
-            }
-        }
-
-        return new Formula(formula.VariableCount, newClauses);
+        Unsatisfiable,
+        Satisfiable,
+        Unknown,
     }
 
-    public static IEnumerable<Literal> FindPureLiterals(Formula formula)
+    private static PropagationResult Propagate(
+        WatchedFormula formula, 
+        Dictionary<int, bool?> assignment,
+        Stack<VariableAssignment> stack)
     {
-        var literalCounts = new Dictionary<Literal, int>();
-        foreach (var clause in formula.Clauses)
-        {
-            foreach (var literal in clause.Literals)
-            {
-                if (!literalCounts.ContainsKey(literal))
-                    literalCounts[literal] = 0;
-                literalCounts[literal]++;
-            }
-        }
-
-        return literalCounts
-            .Where(kvp => !literalCounts.ContainsKey(kvp.Key.Negate()))
-            .Select(kvp => kvp.Key);
+        throw new NotImplementedException();
     }
 
-    private static int? ChooseVariable(Formula formula)
+    private static VariableAssignment? Backtrack(
+        Dictionary<int, bool?> assignments,
+        Stack<VariableAssignment> stack)
     {
-        // Simple heuristic: choose the variable that appears most frequently
-        var variableCounts = new Dictionary<int, int>();
-        foreach (var clause in formula.Clauses)
+        while (stack.Count > 0)
         {
-            foreach (var literal in clause.Literals)
+            var assignment = stack.Pop();
+            assignments[assignment.Variable] = null;
+            if (assignment.IsDecisionVariable)
             {
-                if (!variableCounts.ContainsKey(literal.Variable))
-                    variableCounts[literal.Variable] = 0;
-                variableCounts[literal.Variable]++;
+                if (!assignment.Flipped)
+                {
+                    return new VariableAssignment(assignment.Variable, !assignment.Value, true, true);
+                }
             }
         }
+        return null;
+    }
 
-        return variableCounts.Count > 0
-            ? variableCounts.OrderByDescending(kvp => kvp.Value).First().Key
-            : null;
+    private static VariableAssignment ChooseVariable(WatchedFormula formula, Dictionary<int, bool?> assignments)
+    {
+        // Simple heuristic: choose the first unassigned variable
+        for (int i = 1; i <= formula.VariableCount; i++)
+        {
+            if (!assignments.TryGetValue(i, out var value) || value != null)
+            {
+                return new VariableAssignment(i, true, false, true);
+            }
+        }
+        throw new InvalidOperationException("No variables left to choose");
     }
 } 

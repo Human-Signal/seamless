@@ -18,6 +18,9 @@ public class SolverTests
 
         // Assert
         Assert.True(result.Result);
+        Assert.NotNull(result.Assignment);
+        Assert.True(result.Assignment[1]);
+        Assert.True(result.Assignment[2]);
     }
 
     [Fact]
@@ -34,6 +37,7 @@ public class SolverTests
 
         // Assert
         Assert.False(result.Result);
+        Assert.Null(result.Assignment);
     }
 
     [Fact]
@@ -51,6 +55,7 @@ public class SolverTests
 
         // Assert
         Assert.True(result.Result);
+        Assert.NotNull(result.Assignment);
     }
 
     [Fact]
@@ -64,6 +69,7 @@ public class SolverTests
 
         // Assert
         Assert.True(result.Result);
+        Assert.NotNull(result.Assignment);
     }
 
     [Fact]
@@ -105,6 +111,7 @@ public class SolverTests
 
         // Assert
         Assert.True(result.Result);
+        Assert.NotNull(result.Assignment);
     }
 
     [Fact]
@@ -135,5 +142,6 @@ public class SolverTests
 
         // Assert
         Assert.True(result.Result);
+        Assert.NotNull(result.Assignment);
     }
 } 
